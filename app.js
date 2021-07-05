@@ -3,16 +3,16 @@ import { app, uuid, query, sparqlEscape } from "mu";
 let deleteAfterConsumption=true
 
 app.get("/push-update/:id", async function (req, res) {
-  let id = req.params.id;
+  let id = req.get("MU-TAB-ID");
     let q = `
     PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
     PREFIX mu: <http://mu.semte.ch/vocabularies/core/>
-    PREFIX ext: <http://mu.semte.ch/vocabularies/ext/>
+    PREFIX mupush: <http://mu.semte.ch/vocabularies/push/>
     SELECT ?update
     WHERE {
       GRAPH <http://mu.semte.ch/application> {
-        ?update ext:tabId "${id}";
-                a ext:PushUpdate .
+        ?update mupush:tabId "${id}";
+                a mupush:PushUpdate .
       }
     }
     LIMIT 1`;
@@ -23,15 +23,21 @@ app.get("/push-update/:id", async function (req, res) {
         q = `
         PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
         PREFIX mu: <http://mu.semte.ch/vocabularies/core/>
-        PREFIX ext: <http://mu.semte.ch/vocabularies/ext/>
-        SELECT ?value
+        PREFIX mupush: <http://mu.semte.ch/vocabularies/push/>
+        SELECT ?data ?type
         WHERE {
           GRAPH <http://mu.semte.ch/application> {
-            <${resourceUrl}> rdf:value ?value.
+            <${resourceUrl}>    rdf:value ?data;
+                                mupush:type ?type.
           }
         }`;
         response = await query(q)
-        res.send(response.results.bindings[0].value.value)
+        console.log(response.results.bindings[0])
+        let pushUpdate = response.results.bindings[0];
+        res.send({
+            data: JSON.parse(pushUpdate.data.value),
+            type: pushUpdate.type
+        })
         if (deleteAfterConsumption) {
             q = `
             WITH <http://mu.semte.ch/application>
