@@ -1,9 +1,14 @@
-import { app, uuid, query, sparqlEscape } from "mu";
+import {
+    app,
+    uuid,
+    query,
+    sparqlEscape
+} from "mu";
 
-let deleteAfterConsumption=true
+let deleteAfterConsumption = true
 
-app.get("/push-update/:id", async function (req, res) {
-  let id = req.get("MU-TAB-ID");
+app.get("/push-update/", async function(req, res) {
+    let id = req.get("MU-TAB-ID");
     let q = `
     PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
     PREFIX mu: <http://mu.semte.ch/vocabularies/core/>
@@ -18,7 +23,7 @@ app.get("/push-update/:id", async function (req, res) {
     LIMIT 1`;
     let updates = [];
     let response = await query(q)
-    if (response.results.bindings.length > 0){
+    if (response.results.bindings.length > 0) {
         let resourceUrl = response.results.bindings[0].update.value;
         q = `
         PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -49,8 +54,12 @@ app.get("/push-update/:id", async function (req, res) {
             }
             `
             query(q)
-                .then(()=>{console.log(`Deleting ${resourceUrl} from database worked`)})
-                .catch((error)=>{console.error(error)})
+                .then(() => {
+                    console.log(`Deleting ${resourceUrl} from database worked`)
+                })
+                .catch((error) => {
+                    console.error(error)
+                })
         }
     } else {
         res.send({})
