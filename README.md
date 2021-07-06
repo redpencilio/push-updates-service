@@ -16,3 +16,5 @@ The push update will be returned in the following json format
     type: <the mupush:type of the push update>
 }
 ```
+
+The semantic model of a push update is defined in [this file](../model.md)
