@@ -5,12 +5,18 @@ import {
     sparqlEscape
 } from "mu";
 
-let deleteAfterConsumption = process.env.PUSH_UPDATES_DELETE_AFTER_CONSUMPTION || false;
+let deleteAfterConsumption = process.env.PUSH_UPDATES_DELETE_AFTER_CONSUMPTION;
 let sort = process.env.PUSH_UPDATES_SORTING_METHOD || "" // must be "ASC" or "DESC" all other values are interpreted as falsy (no sorting)
+let refreshTimeout = 1000;
+let maxTimeout = 60; // in seconds
+let maxRetrySparql = maxTimeout * 1000 / refreshTimeout - 5;
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 
 app.get("/push-update/", async function(req, res) {
-    res.status(200)
     let sorting = ""
     if (["ASC", "DESC"].includes(sort)) {
         sorting = `ORDER BY ${sort}(?date)`
@@ -34,7 +40,15 @@ app.get("/push-update/", async function(req, res) {
     let updates = [];
     let response = await query(q)
 
-    console.log(response.results.bindings)
+    let retry = 0;
+    while (response.results.bindings.length == 0 && retry < maxRetrySparql) {
+        await sleep(refreshTimeout)
+        retry++
+        console.log(`retry numero ${retry}`)
+        response = await query(q)
+        console.log(response.results.bindings)
+    }
+
     if (response.results.bindings.length > 0) {
         let resourceUrl = response.results.bindings[0].update.value;
         q = `
@@ -49,7 +63,6 @@ app.get("/push-update/", async function(req, res) {
           }
         }`;
         response = await query(q)
-        console.log(response.results.bindings[0])
         let pushUpdate = response.results.bindings[0];
         res.send({
             data: JSON.parse(pushUpdate.data.value),
@@ -74,6 +87,6 @@ app.get("/push-update/", async function(req, res) {
                 })
         }
     } else {
-        res.send({})
+        res.status(404).send({})
     }
 });
