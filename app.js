@@ -16,13 +16,7 @@ function sleep(ms) {
 }
 
 
-app.disable('etag');
-
 app.get("/push-update/", async function(req, res) {
-    res.header("Cache-Control", "no-cache, no-store, must-revalidate");
-    res.header("Pragma", "no-cache");
-    res.header("Expires", 0);
-
     let sorting = ""
     if (["ASC", "DESC"].includes(sort)) {
         sorting = `ORDER BY ${sort}(?date)`
