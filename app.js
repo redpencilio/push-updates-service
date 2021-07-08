@@ -7,8 +7,8 @@ import {
 
 let deleteAfterConsumption = process.env.PUSH_UPDATES_DELETE_AFTER_CONSUMPTION;
 let sort = process.env.PUSH_UPDATES_SORTING_METHOD || "" // must be "ASC" or "DESC" all other values are interpreted as falsy (no sorting)
-let refreshTimeout = 1000;
-let maxTimeout = 80; // in seconds
+let refreshTimeout = process.env.PUSH_UPDATES_REFRESH_TIMEOUT || 1000;
+let maxTimeout = process.env.PUSH_UPDATES_MAX_TIMEOUT || 80; // in seconds
 let maxRetrySparql = maxTimeout * 1000 / refreshTimeout - 5;
 
 function sleep(ms) {

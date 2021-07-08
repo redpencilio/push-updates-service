@@ -25,3 +25,6 @@ The semantic model of a push update is defined in [this file](../model.md)
 | --- | --- |
 | `PUSH_UPDATES_DELETE_AFTER_CONSUMTION` | Whether or not a push update should be deleted after consuming it |
 | `PUSH_UPDATES_SORTING_METHOD` | The method of sorting on the creation date: "ASC" or "DESC" all other values are interpreted as no sorting |
+| `PUSH_UPDATES_REFRESH_TIMEOUT` | The timeout between sparql requests to check for new push updates in ms |
+| `PUSH_UPDATES_MAX_TIMEOUT` | The maximum timeout for a request in seconds |
+
