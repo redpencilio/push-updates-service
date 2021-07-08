@@ -8,7 +8,7 @@ import {
 let deleteAfterConsumption = process.env.PUSH_UPDATES_DELETE_AFTER_CONSUMPTION;
 let sort = process.env.PUSH_UPDATES_SORTING_METHOD || "" // must be "ASC" or "DESC" all other values are interpreted as falsy (no sorting)
 let refreshTimeout = 1000;
-let maxTimeout = 60; // in seconds
+let maxTimeout = 80; // in seconds
 let maxRetrySparql = maxTimeout * 1000 / refreshTimeout - 5;
 
 function sleep(ms) {
@@ -16,7 +16,13 @@ function sleep(ms) {
 }
 
 
+app.disable('etag');
+
 app.get("/push-update/", async function(req, res) {
+    res.header("Cache-Control", "no-cache, no-store, must-revalidate");
+    res.header("Pragma", "no-cache");
+    res.header("Expires", 0);
+
     let sorting = ""
     if (["ASC", "DESC"].includes(sort)) {
         sorting = `ORDER BY ${sort}(?date)`
@@ -44,9 +50,9 @@ app.get("/push-update/", async function(req, res) {
     while (response.results.bindings.length == 0 && retry < maxRetrySparql) {
         await sleep(refreshTimeout)
         retry++
-        console.log(`retry numero ${retry}`)
+        // console.log(`retry numero ${retry}`)
         response = await query(q)
-        console.log(response.results.bindings)
+        // console.log(response.results.bindings)
     }
 
     if (response.results.bindings.length > 0) {
