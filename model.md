@@ -14,6 +14,7 @@ The push update is a mupush:PushUpdate and has the following properties
 | --- | --- |
 | mu:uuid       | The unique identifier of the push update |
 | mupush:tabId  | The unique identifier of the tab for which the push update is meant |
-| mupush:type   | The uri indicating the type scope of the push update |
+| mupush:type   | The uri indicating the type of the push update |
+| mupush:realm  | The uri indicating the realm of the push update |
 | rdf:value     | A string literal value of the push update |
 | dc:created    | A xsd:dateTime of the creation moment of the push update |

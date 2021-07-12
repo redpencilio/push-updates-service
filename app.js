@@ -61,10 +61,11 @@ app.get("/push-update/", async function(req, res) {
             PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
             PREFIX mu: <http://mu.semte.ch/vocabularies/core/>
             PREFIX mupush: <http://mu.semte.ch/vocabularies/push/>
-            SELECT ?data ?type
+            SELECT ?data ?type ?realm
             WHERE {
               GRAPH <http://mu.semte.ch/application> {
                 <${resourceUrl}>    rdf:value ?data;
+                                    mupush:realm ?realm;
                                     mupush:type ?type.
               }
             }`;
@@ -72,6 +73,7 @@ app.get("/push-update/", async function(req, res) {
             let pushUpdate = response.results.bindings[0];
             res.send({
                 data: JSON.parse(pushUpdate.data.value),
+                realm: pushUpdate.realm,
                 type: pushUpdate.type
             })
             if (deleteAfterConsumption) {
