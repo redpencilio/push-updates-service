@@ -17,9 +17,10 @@ function sleep(ms) {
 }
 app.use(bodyParser.json());
 
-// A map containing booleans per tabId to indicate a new push update is ready for that tab
+// A map containing a counter per tabId to indicate how many new push updates are ready for that tab
 let readyTabIds = {}
 
+// Get the push update for a certain tab
 app.get("/push-update/", async function(req, res) {
     let sorting = ""
     if (["ASC", "DESC"].includes(sort)) {
@@ -27,16 +28,19 @@ app.get("/push-update/", async function(req, res) {
     }
     let retry = 0;
 
+    // Check that there're push updates ready, wait otherwise
     let id = req.get("MU-TAB-ID");
     while (!readyTabIds[id] && retry < maxRetrySparql) {
         await sleep(refreshTimeout)
         retry++
     }
+    // If there was a ready push update, return it
     if (retry !== maxRetrySparql) {
         console.log(`Waited ${retry*refreshTimeout}ms for tab ${id}`)
         console.log(new Date())
         readyTabIds[id]--;
 
+        // Query one push update for the given tab
         let q = `
         PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
         PREFIX mu: <http://mu.semte.ch/vocabularies/core/>
@@ -55,6 +59,7 @@ app.get("/push-update/", async function(req, res) {
         let updates = [];
         let response = await query(q)
 
+        // Get the details of the push update and return them
         if (response.results.bindings.length > 0) {
             let resourceUrl = response.results.bindings[0].update.value;
             q = `
@@ -101,6 +106,7 @@ app.get("/push-update/", async function(req, res) {
     }
 });
 
+// Process delta messages comming in
 app.post("/.mu/delta", async function(req, res) {
     console.log("Got delta")
     console.log(new Date())
@@ -110,6 +116,7 @@ app.post("/.mu/delta", async function(req, res) {
     // Since we're only interested in new push updates being made, we don't check the deletes
     for (let delta of req.body) {
         for (let entry of delta.inserts) {
+            // If the insert has the predicate tabId, check the value and update the counter for that tab-id
             if (entry.predicate.value === 'http://mu.semte.ch/vocabularies/push/tabId') {
                 if (!readyTabIds[entry.object.value]) {
                     readyTabIds[entry.object.value] = 1;
